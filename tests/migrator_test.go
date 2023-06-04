@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"strings"
@@ -13,6 +14,8 @@ import (
 	"ytils.dev/sqlite-migrator/tests/fixtures/base"
 	"ytils.dev/sqlite-migrator/tests/fixtures/duplicate"
 	"ytils.dev/sqlite-migrator/tests/fixtures/invalid"
+
+	_ "github.com/mattn/go-sqlite3" // Required to load "sqlite" driver.
 )
 
 func sqlMock(t *testing.T) (*sql.DB, sqlmock.Sqlmock) {
@@ -275,5 +278,33 @@ func TestMigrator_WithLogFunc(t *testing.T) {
 		assert.Equal(t, 2, calls)
 
 		require.NoError(t, mock.ExpectationsWereMet())
+	})
+}
+
+func TestMigrator_SQLite(t *testing.T) {
+	t.Parallel()
+
+	t.Run("base", func(t *testing.T) {
+		t.Parallel()
+
+		db, err := sqlx.Open("sqlite3", ":memory:")
+		require.NoError(t, err)
+
+		m := migrator.New(db.DB, base.FS)
+
+		err = m.Migrate(context.Background())
+		require.NoError(t, err)
+
+		// Make sure the migrations were applied
+
+		var version uint32
+		err = db.QueryRow("PRAGMA user_version").Scan(&version)
+		require.NoError(t, err)
+		assert.Equal(t, uint32(13129933), version)
+
+		var tables []string
+		err = db.Select(&tables, `SELECT name FROM sqlite_master WHERE type='table' ORDER BY name`)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{"test", "test2"}, tables)
 	})
 }
