@@ -1,4 +1,4 @@
-package migrator_test
+package tests
 
 import (
 	"context"
@@ -9,10 +9,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
-	migrator "ytils.dev/sqlite-migrator"
-	"ytils.dev/sqlite-migrator/fixtures/base"
-	"ytils.dev/sqlite-migrator/fixtures/duplicate"
-	"ytils.dev/sqlite-migrator/fixtures/invalid"
+	"ytils.dev/sqlite-migrator"
+	"ytils.dev/sqlite-migrator/tests/fixtures/base"
+	"ytils.dev/sqlite-migrator/tests/fixtures/duplicate"
+	"ytils.dev/sqlite-migrator/tests/fixtures/invalid"
 )
 
 func sqlMock(t *testing.T) (*sql.DB, sqlmock.Sqlmock) {
@@ -36,7 +36,7 @@ func TestMigrator_Migrate(t *testing.T) {
 		mock.ExpectQuery("PRAGMA user_version").WillReturnRows(sqlmock.NewRows([]string{"user_version"}).AddRow(0))
 		mock.ExpectExec("create table test").WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectExec("create table test2").WillReturnResult(sqlmock.NewResult(0, 0))
-		mock.ExpectExec("PRAGMA user_version = ?").WithArgs(13129933).WillReturnResult(sqlmock.NewResult(0, 0))
+		mock.ExpectExec("PRAGMA user_version = 13129933").WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
 
 		err := m.Migrate(context.Background())
@@ -55,7 +55,7 @@ func TestMigrator_Migrate(t *testing.T) {
 		mock.ExpectBegin()
 		mock.ExpectQuery("PRAGMA user_version").WillReturnRows(sqlmock.NewRows([]string{"user_version"}).AddRow(13046400))
 		mock.ExpectExec("create table test2").WillReturnResult(sqlmock.NewResult(0, 0))
-		mock.ExpectExec("PRAGMA user_version = ?").WithArgs(13129933).WillReturnResult(sqlmock.NewResult(0, 0))
+		mock.ExpectExec("PRAGMA user_version = 13129933").WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
 
 		err := m.Migrate(context.Background())
@@ -144,7 +144,7 @@ func TestMigrator_Migrate(t *testing.T) {
 		mock.ExpectQuery("PRAGMA user_version").WillReturnRows(sqlmock.NewRows([]string{"user_version"}).AddRow(0))
 		mock.ExpectExec("create table test").WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectExec("create table test2").WillReturnResult(sqlmock.NewResult(0, 0))
-		mock.ExpectExec("PRAGMA user_version = ?").WithArgs(13129933).WillReturnError(errors.New("write error"))
+		mock.ExpectExec("PRAGMA user_version = 13129933").WillReturnError(errors.New("write error"))
 		mock.ExpectRollback()
 
 		err := m.Migrate(context.Background())
@@ -213,7 +213,7 @@ func TestMigrator_WithIDFunc(t *testing.T) {
 		mock.ExpectExec("create table test2").WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectExec("create table test").WillReturnResult(sqlmock.NewResult(0, 0))
 
-		mock.ExpectExec("PRAGMA user_version = ?").WithArgs(2).WillReturnResult(sqlmock.NewResult(0, 0))
+		mock.ExpectExec("PRAGMA user_version = 2").WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
 
 		err := m.Migrate(context.Background())
@@ -267,7 +267,7 @@ func TestMigrator_WithLogFunc(t *testing.T) {
 		mock.ExpectQuery("PRAGMA user_version").WillReturnRows(sqlmock.NewRows([]string{"user_version"}).AddRow(0))
 		mock.ExpectExec("create table test").WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectExec("create table test2").WillReturnResult(sqlmock.NewResult(0, 0))
-		mock.ExpectExec("PRAGMA user_version = ?").WithArgs(13129933).WillReturnResult(sqlmock.NewResult(0, 0))
+		mock.ExpectExec("PRAGMA user_version = 13129933").WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
 
 		err := m.Migrate(context.Background())
