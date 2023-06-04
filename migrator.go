@@ -105,7 +105,7 @@ func (m *Migrator) Migrate(ctx context.Context) error {
 
 	finalID := unappliedMigrations[len(unappliedMigrations)-1].ID
 
-	if _, err := tx.ExecContext(ctx, "PRAGMA user_version = ?", finalID); err != nil {
+	if _, err := tx.ExecContext(ctx, fmt.Sprintf("PRAGMA user_version = %d", finalID)); err != nil {
 		return fmt.Errorf("PRAGMA user_version: %w", err)
 	}
 
